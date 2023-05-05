@@ -1,12 +1,11 @@
 ﻿
-
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddAWSTalker();
 //builder.Services.AddAzureTalker();
-builder.Services.AddScoped<PersonRepo>();
+builder.Services.AddSingleton<PersonRepo>(); //Let's read about it :)
 
 var app = builder.Build();
 
@@ -28,7 +27,7 @@ app.Run();
 
 
 
-public static class TalkerCloudExtentions 
+public static class TalkerCloudExtentions // Extensions
 {
     public static IServiceCollection AddAWSTalker(this IServiceCollection services) 
     {
@@ -41,7 +40,7 @@ public static class TalkerCloudExtentions
     }
 }
 
-public class TalkRed : ISystemTalker
+public class TalkRed : ISystemTalker  // Class implementing a interface
 {
     public TalkRed(PersonRepo repo)
     {
@@ -56,7 +55,7 @@ public class TalkRed : ISystemTalker
     }
 }
 
-public class TalkBlue : ISystemTalker
+public class TalkBlue : ISystemTalker // Class implementing a interface
 {
     public TalkBlue(PersonRepo repo)
     {
@@ -74,7 +73,7 @@ public record Person(string FirstName, string LastName);
 
 public class PersonRepo
 {
-    Dictionary<int, Person> dict = new Dictionary<int, Person>() {
+    Dictionary<int, Person> dict = new Dictionary<int, Person>() { //super database lol
         {0,new ("Ryan", "Anderson")},
         {1,new ("Dani", "Trugilo")},
     };
@@ -83,9 +82,9 @@ public class PersonRepo
         return dict[id];
     }
 
-    public Person AddPerson(Person person) {
+    public int AddPerson(Person person) {
         dict.Add(dict.Keys.Max() + 1, person);
-        return person;
+        return dict.Keys.Max();
     }
 
     public ConsoleColor GetColor(int id)
@@ -98,23 +97,23 @@ public class PersonRepo
     }
 }
 
-public interface ISystemTalker 
+public interface ISystemTalker  // Interface
 {
     void Say(string msg);
 }
 
-[ApiController]
-public class TalkerController {
+ [ApiController] // Controller Attribute 
+public class TalkerController { 
     ISystemTalker talker;
     private PersonRepo personRepo;
 
-    public TalkerController(ISystemTalker talker,PersonRepo personRepo)
+    public TalkerController(ISystemTalker talker,PersonRepo personRepo) // Constructor? Initializing the variables ?
     {
         this.talker = talker;
         this.personRepo = personRepo;
     }
 
-    [HttpGet("Greet/{personId}")]
+    [HttpGet("Greet/{personId}")] // api address
     public string Greet(int personId) {
         talker.Say($"Hi {personRepo.GetPerson(personId).FirstName}");
         return $"Hi {personRepo.GetPerson(personId).FirstName}";
@@ -126,14 +125,12 @@ public class TalkerController {
         return $"GoodBye {personRepo.GetPerson(personId).FirstName}";
     }
 
-    [HttpPost("AddPerson/{personId}")]
-    public string AddPerson(Person person) {
-        personRepo.AddPerson(person);
-        return $"{person.FirstName} Added!!";
+    [HttpPost("AddPerson")]
+    public string AddPerson([FromBody]Person person) {
+        var personId = personRepo.AddPerson(person);
+        return $"{person.FirstName} is cool at {personId}!!";
     }
 
+    //Get a list of persons that we have with ID and Name
+    //Remove Person
 }
-
-
-// Android APP -> Bussnee Logic -> HW
-// Ios -> Bussnee Logic -> HW
