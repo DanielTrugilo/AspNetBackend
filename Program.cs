@@ -73,7 +73,7 @@ public record Person(string FirstName, string LastName);
 
 public class PersonRepo
 {
-    Dictionary<int, Person> dict = new Dictionary<int, Person>() { //super database lol
+    Dictionary<int, Person> dict = new() { //super database lol
         {0,new ("Ryan", "Anderson")},
         {1,new ("Dani", "Trugilo")},
     };
@@ -87,6 +87,12 @@ public class PersonRepo
         return dict.Keys.Max();
     }
 
+    public Person DeletePerson(int id) {
+        Person person = dict[id];
+        dict.Remove(id);
+        return person;
+    }
+
     public ConsoleColor GetColor(int id)
     {
         var dict = new Dictionary<int, ConsoleColor>() {
@@ -95,6 +101,15 @@ public class PersonRepo
         };
         return dict[id];
     }
+    public List<string> ListPersons(int[] id)
+    {
+        List<string> nameList = new List<string>();
+        foreach (KeyValuePair<int, Person> persons in dict){
+            nameList.Add("Test");
+        }
+        return nameList;
+    }
+
 }
 
 public interface ISystemTalker  // Interface
@@ -102,7 +117,7 @@ public interface ISystemTalker  // Interface
     void Say(string msg);
 }
 
- [ApiController] // Controller Attribute 
+[ApiController] // Controller Attribute 
 public class TalkerController { 
     ISystemTalker talker;
     private PersonRepo personRepo;
@@ -121,7 +136,7 @@ public class TalkerController {
 
     [HttpGet("GoodBye/{personId}")]
     public string GoodBye(int personId) {
-        talker.Say($"Good Bye {personRepo.GetPerson(personId).FirstName}");
+        talker.Say($"GoodBye {personRepo.GetPerson(personId).FirstName}");
         return $"GoodBye {personRepo.GetPerson(personId).FirstName}";
     }
 
@@ -130,6 +145,13 @@ public class TalkerController {
         var personId = personRepo.AddPerson(person);
         return $"{person.FirstName} is cool at {personId}!!";
     }
+
+    [HttpDelete("DeletePerson/{personId}")]
+    public string DeletePerson(int personId) {
+        var personIdDelete = personRepo.DeletePerson(personId);
+        return $"Id removed at position {personId}.";
+    }
+
 
     //Get a list of persons that we have with ID and Name
     //Remove Person
