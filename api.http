@@ -1,8 +1,12 @@
-GET https://localhost:5001/people
+GET https://localhost:60008/people
 
 ###
 
-POST  https://localhost:5001/addperson
+GET https://localhost:60008/vaccinelist
+
+###
+
+POST  https://localhost:60008/addperson
 content-type: application/json
 
 {
@@ -12,4 +16,14 @@ content-type: application/json
 
 ###
 
-GET  https://localhost:5001/addvaccine/3/flu
+GET  https://localhost:60008/addvaccine/1/tetanus
+
+
+###
+
+DELETE https://localhost:60008/DeletePerson/3
+
+
+###
+
+GET https://localhost:60008/GoodBye/0

@@ -1,9 +1,6 @@
 ﻿
-<<<<<<< HEAD
-=======
 
 using System.Text.Json;
->>>>>>> upstream/master
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,11 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddAWSTalker();
 //builder.Services.AddAzureTalker();
-<<<<<<< HEAD
 builder.Services.AddSingleton<PersonRepo>(); //Let's read about it :)
-=======
-builder.Services.AddSingleton<PersonRepo>();
->>>>>>> upstream/master
 
 var app = builder.Build();
 
@@ -87,11 +80,7 @@ public record Vaccine(string Name);
 
 public class PersonRepo
 {
-<<<<<<< HEAD
-    Dictionary<int, Person> dict = new() { //super database lol
-=======
     Dictionary<int, Person> dict = new() {
->>>>>>> upstream/master
         {0,new ("Ryan", "Anderson")},
         {1,new ("Dani", "Trugilo")},
     };
@@ -111,16 +100,36 @@ public class PersonRepo
         return dict.Keys.Max();
     }
 
-    public Person DeletePerson(int id) {
-        Person person = dict[id];
-        dict.Remove(id);
-        return person;
+    public (bool, Person?) DeletePerson(int id) {
+        if(dict.ContainsKey(id)) {
+            Person person = dict[id];
+            dict.Remove(id);
+            return (true, person);
+        }
+        return (false, null);
     }
 
     public Person AddVaccine(int id, string vaccineName) {
         if(dict[id].Vaccinations == null) dict[id].Vaccinations = new List<Vaccine>();
         dict[id].Vaccinations?.Add(new Vaccine(vaccineName));
         return dict[id];
+    }
+
+    public IEnumerable<Vaccine> GetVaccines()
+    {
+        // HashSet<string> vaccineList = new();
+        // for(int indexName = 0; indexName < dict.Count; indexName++)
+        // {
+        //     if (dict[indexName].Vaccinations != null)
+        //     {
+        //         for(int indexVax = 0; indexVax < dict[indexName].Vaccinations.Count; indexVax++)
+        //         {
+        //             if(!vaccineList.Contains(dict[indexName].Vaccinations[indexVax].Name))
+        //                 vaccineList.Add(dict[indexName].Vaccinations[indexVax].Name);
+        //         }
+        //     }
+        // }       
+        return dict.Where(i => i.Value.Vaccinations != null).SelectMany(i => i.Value.Vaccinations).Distinct();
     }
 
     public ConsoleColor GetColor(int id)
@@ -131,17 +140,6 @@ public class PersonRepo
         };
         return dict[id];
     }
-<<<<<<< HEAD
-    public List<string> ListPersons(int[] id)
-    {
-        List<string> nameList = new List<string>();
-        foreach (KeyValuePair<int, Person> persons in dict){
-            nameList.Add("Test");
-        }
-        return nameList;
-    }
-
-=======
 
     public List<Person> GetPeople() 
     {
@@ -157,9 +155,10 @@ public class PersonRepo
     }
 
     public void LoadData() {
-        dict = JsonSerializer.Deserialize<Dictionary<int, Person>>(File.ReadAllText("data.db")) ?? dict; //if null reassign to itself;
+        dict = JsonSerializer.Deserialize<Dictionary<int, Person>>(File.ReadAllText("data.db")) ?? dict; //if null reassign to itself
     }
->>>>>>> upstream/master
+
+
 }
 
 public interface ISystemTalker  // Interface
@@ -167,17 +166,10 @@ public interface ISystemTalker  // Interface
     void Say(string msg);
 }
 
-<<<<<<< HEAD
-[ApiController] // Controller Attribute 
-public class TalkerController { 
-    ISystemTalker talker;
-    private PersonRepo personRepo;
-=======
 [ApiController]
 public class TalkerController {
     readonly ISystemTalker talker;
     private readonly PersonRepo personRepo;
->>>>>>> upstream/master
 
     public TalkerController(ISystemTalker talker,PersonRepo personRepo) // Constructor? Initializing the variables ?
     {
@@ -197,29 +189,34 @@ public class TalkerController {
         return $"GoodBye {personRepo.GetPerson(personId).FirstName}";
     }
 
-<<<<<<< HEAD
-    [HttpPost("AddPerson")]
-    public string AddPerson([FromBody]Person person) {
-        var personId = personRepo.AddPerson(person);
-        return $"{person.FirstName} is cool at {personId}!!";
-    }
-
-    [HttpDelete("DeletePerson/{personId}")]
-    public string DeletePerson(int personId) {
-        var personIdDelete = personRepo.DeletePerson(personId);
-        return $"Id removed at position {personId}.";
-    }
-=======
     [HttpGet("People")]
     public List<Person> People() {
         return personRepo.GetPeople();
     }
 
+    [HttpGet("VaccineList")]
+    public IEnumerable<Vaccine> Vaccines(){
+        return personRepo.GetVaccines();
+    }
+
+    // Hello
     [HttpPost("AddPerson")]
     public string AddPerson(Person person) {
         personRepo.AddPerson(person);
         personRepo.PersistData();
         return $"{person.FirstName} Added!!";
+    }
+
+    [HttpDelete("DeletePerson/{personId}")]
+    public IActionResult DeletePerson(int personId)
+    {
+        var (result, person) = personRepo.DeletePerson(personId);
+        if(result)
+        {
+            personRepo.PersistData();    
+            return new OkObjectResult($"{person.FirstName} removed from the db.");
+        }
+        return new BadRequestObjectResult($"Could not find person with id {personId}");
     }
 
     [HttpGet("AddVaccine/{personId}/{vaccineName}")]
@@ -229,10 +226,4 @@ public class TalkerController {
         return person;
     }
 
-}
->>>>>>> upstream/master
-
-
-    //Get a list of persons that we have with ID and Name
-    //Remove Person
 }
